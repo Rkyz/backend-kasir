@@ -35,6 +35,9 @@ Route::prefix('buying')->group(function () {
     Route::post('/create', [BuyingController::class, 'createBuying']);
 });
 
+Route::get('/detail',[BuyingController::class, 'getAllBuyingDetail']);
+Route::get('/detail/{id}',[BuyingController::class, 'searchDetail']);
+
 Route::prefix('customer')->group(function () {
     Route::get('/', [CustomerController::class, 'getAllCustomer']);
     Route::get('/{id}', [CustomerController::class, 'searchCustomer']);

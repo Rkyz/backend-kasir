@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\BuyingDetailResource;
 use App\Http\Resources\BuyingResource;
 use App\Models\Buying;
 use App\Models\DetailBuying;
-use App\Models\Product;
+use App\Models\Product; 
+use App\Models\Customer;
 use Illuminate\Http\Request;
 
 class BuyingController extends Controller
@@ -15,11 +17,70 @@ class BuyingController extends Controller
         $buying = Buying::all();
         return BuyingResource::collection($buying);
     }
+    public function getAllBuyingDetail()
+    {
+        $buyingDetails = DetailBuying::all();
+        $mergedDetails = [];
+    
+        foreach ($buyingDetails as $detail) {
+            $customerId = $detail->buying->PelangganID;
+            if (!isset($mergedDetails[$customerId])) {
+                $mergedDetails[$customerId] = [
+                    'PenjualanID' => [
+                        'id' => $detail->buying->id,
+                        'TanggalPenjualan' => $detail->buying->TanggalPenjualan,
+                        'TotalHarga' => $detail->buying->TotalHarga,
+                        'PelangganID' => $customerId,
+                    ],
+                    'items' => [],
+                ];
+            }
+            $mergedDetails[$customerId]['items'][] = [
+                'ProdukID' => $detail->product,
+                'JumlahProduk' => $detail->JumlahProduk,
+                'Subtotal' => $detail->Subtotal,
+            ];
+        }
+    
+        $mergedDetails = array_values($mergedDetails);
+    
+        return response()->json(['data' => $mergedDetails]);
+    }
+    
+    
+    
     public function searchBuying($id)
     {
         $buying = Buying::findOrFail($id);
         return new BuyingResource($buying);
     }
+    public function searchDetail($id)
+    {
+        $buyingDetails = DetailBuying::where('PenjualanID', $id)->get();
+    
+        if ($buyingDetails->isEmpty()) {
+            return response()->json(['message' => 'Detail pembelian tidak ditemukan'], 404);
+        }
+    
+        $result = [
+            'PenjualanID' => [
+                'id' => $buyingDetails[0]->buying->id,
+                'TanggalPenjualan' => $buyingDetails[0]->buying->TanggalPenjualan,
+                'TotalHarga' => $buyingDetails[0]->buying->TotalHarga,
+                'PelangganID' => $buyingDetails[0]->buying->PelangganID,
+            ],
+            'items' => $buyingDetails->map(function ($detail) {
+                return [
+                    'ProdukID' => $detail->product,
+                    'JumlahProduk' => $detail->JumlahProduk,
+                    'Subtotal' => $detail->Subtotal,
+                ];
+            })->toArray(),
+        ];
+    
+        return response()->json(['data' => $result]);
+    }
+    
     public function createBuying(Request $request)
     {
         $request->validate([
@@ -77,6 +138,7 @@ class BuyingController extends Controller
 
         return response()->json(['message' => 'Penjualan berhasil ditambahkan', 'Data' => $buying], 201);
     }
+
 
     
 }
