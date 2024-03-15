@@ -62,23 +62,32 @@ class BuyingController extends Controller
             return response()->json(['message' => 'Detail pembelian tidak ditemukan'], 404);
         }
     
-        $result = [
-            'PenjualanID' => [
-                'id' => $buyingDetails[0]->buying->id,
-                'TanggalPenjualan' => $buyingDetails[0]->buying->TanggalPenjualan,
-                'TotalHarga' => $buyingDetails[0]->buying->TotalHarga,
-                'PelangganID' => $buyingDetails[0]->buying->PelangganID,
-            ],
-            'items' => $buyingDetails->map(function ($detail) {
-                return [
-                    'ProdukID' => $detail->product,
-                    'JumlahProduk' => $detail->JumlahProduk,
-                    'Subtotal' => $detail->Subtotal,
-                ];
-            })->toArray(),
-        ];
+
+        $mergedDetails = [];
     
-        return response()->json(['data' => $result]);
+        foreach ($buyingDetails as $detail) {
+            $customerId = $detail->buying->PelangganID;
+            if (!isset($mergedDetails[$customerId])) {
+                $mergedDetails[$customerId] = [
+                    'PenjualanID' => [
+                        'id' => $detail->buying->id,
+                        'TanggalPenjualan' => $detail->buying->TanggalPenjualan,
+                        'TotalHarga' => $detail->buying->TotalHarga,
+                        'PelangganID' => $customerId,
+                    ],
+                    'items' => [],
+                ];
+            }
+            $mergedDetails[$customerId]['items'][] = [
+                'ProdukID' => $detail->product,
+                'JumlahProduk' => $detail->JumlahProduk,
+                'Subtotal' => $detail->Subtotal,
+            ];
+        }
+    
+        $mergedDetails = array_values($mergedDetails);
+    
+        return response()->json(['data' => $mergedDetails]);
     }
     
     public function createBuying(Request $request)
