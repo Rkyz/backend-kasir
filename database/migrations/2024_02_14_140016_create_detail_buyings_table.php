@@ -12,14 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detail_buyings', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('PenjualanID');
-            $table->unsignedBigInteger('ProdukID');
-            $table->integer('JumlahProduk');
-            $table->bigInteger('Subtotal');
-            $table->timestamps();
-            $table->foreign('PenjualanID')->references('id')->on('buyings');
-            $table->foreign('ProdukID')->references('id')->on('products');
         });
     }
 
