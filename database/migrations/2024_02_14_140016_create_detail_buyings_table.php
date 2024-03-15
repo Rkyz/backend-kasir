@@ -18,8 +18,6 @@ return new class extends Migration
             $table->integer('JumlahProduk');
             $table->bigInteger('Subtotal');
             $table->timestamps();
-            $table->foreign('PenjualanID')->references('id')->on('buyings');
-            $table->foreign('ProdukID')->references('id')->on('products');
         });
     }
 

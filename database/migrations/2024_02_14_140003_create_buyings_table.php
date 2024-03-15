@@ -17,7 +17,6 @@ return new class extends Migration
             $table->bigInteger('TotalHarga');
             $table->unsignedBigInteger('PelangganID');
             $table->timestamps();
-            $table->foreign('PelangganID')->references('id')->on('customers');
 
         });
     }
